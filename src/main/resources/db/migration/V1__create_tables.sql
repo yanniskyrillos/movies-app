@@ -15,9 +15,9 @@ create table if not exists movies (
     dislikes int
 );
 
-create table if not exists opinions (
+create table if not exists ratings (
     user_id bigint,
     movie_id bigint,
     liked boolean,
-    constraint opinion_id unique (user_id, movie_id)
+    constraint rating_id unique (user_id, movie_id)
 );

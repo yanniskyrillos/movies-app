@@ -52,5 +52,5 @@ public class Movie {
     private User submitter;
 
     @OneToMany(mappedBy = "movie")
-    private List<Opinion> opinions;
+    private List<Rating> ratings;
 }

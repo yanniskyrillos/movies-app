@@ -16,17 +16,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "opinions")
+@Table(name = "ratings")
 @Getter
 @Setter
 @EqualsAndHashCode
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Opinion {
+public class Rating {
 
     @EmbeddedId
-    private OpinionId opinionId;
+    private RatingId ratingId;
 
     @Column
     private boolean liked;

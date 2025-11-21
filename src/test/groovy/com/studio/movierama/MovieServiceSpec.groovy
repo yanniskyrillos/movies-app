@@ -3,8 +3,7 @@ package com.studio.movierama
 import com.studio.movierama.config.security.MovieRamaUserDetails
 import com.studio.movierama.domain.Movie
 import com.studio.movierama.domain.User
-import com.studio.movierama.domain.Opinion
-import com.studio.movierama.domain.OpinionId
+import com.studio.movierama.domain.RatingId
 import com.studio.movierama.dto.MovieDto
 import com.studio.movierama.dto.MovieRatingRequestDto
 import com.studio.movierama.enums.Rating
@@ -55,17 +54,17 @@ class MovieServiceSpec extends Specification {
                     .userId(1L)
                     .movieId(1L)
                     .build()
-            OpinionId userMovieId = new OpinionId(1L, 1L)
-            Opinion userMovie = Opinion
+            RatingId userMovieId = new RatingId(1L, 1L)
+            com.studio.movierama.domain.Rating userMovie = com.studio.movierama.domain.Rating
                     .builder()
-                    .opinionId(userMovieId)
+                    .ratingId(userMovieId)
                     .likeHateFlag(Rating.LIKE.booleanValue)
                     .build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with LIKE flag will be saved to the database"
             1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
-            1 * userMovieRepository.findById(_) >> Optional.of(Opinion.builder().opinionId(userMovieId).build())
+            1 * userMovieRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(userMovieId).build())
             1 * userMovieRepository.save(userMovie)
     }
 
@@ -77,17 +76,17 @@ class MovieServiceSpec extends Specification {
                     .userId(1L)
                     .movieId(1L)
                     .build()
-            OpinionId userMovieId = new OpinionId(1L, 1L)
-            Opinion userMovie = Opinion
+            RatingId userMovieId = new RatingId(1L, 1L)
+            com.studio.movierama.domain.Rating userMovie = com.studio.movierama.domain.Rating
                     .builder()
-                    .opinionId(userMovieId)
+                    .ratingId(userMovieId)
                     .likeHateFlag(Rating.DISLIKE.booleanValue)
                     .build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with HATE flag will be saved to the database"
             1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
-            1 * userMovieRepository.findById(_) >> Optional.of(Opinion.builder().opinionId(userMovieId).build())
+            1 * userMovieRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(userMovieId).build())
             1 * userMovieRepository.save(userMovie)
     }
 
@@ -107,8 +106,8 @@ class MovieServiceSpec extends Specification {
                                 .id(1)
                                 .userId(2)
                                 .build()
-            OpinionId userMovieId = new OpinionId(2, 1)
-            Opinion userMovie = new Opinion(userMovieId, "L")
+            RatingId userMovieId = new RatingId(2, 1)
+            com.studio.movierama.domain.Rating userMovie = new com.studio.movierama.domain.Rating(userMovieId, "L")
             MovieDto movieDto = MovieDto.builder().userId(2).id(1).build()
         when: "the method is called"
             def response = movieService.findAll(pageable).content[0]
