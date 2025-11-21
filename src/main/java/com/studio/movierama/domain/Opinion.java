@@ -1,5 +1,8 @@
 package com.studio.movierama.domain;
 
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,25 +13,33 @@ import lombok.Setter;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users_movies")
+@Table(name = "opinions")
 @Getter
 @Setter
 @EqualsAndHashCode
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserMovie {
+public class Opinion {
 
     @EmbeddedId
-    private UserMovieId userMovieId;
+    private OpinionId opinionId;
 
     @Column
-    private String likeHateFlag;
+    private boolean liked;
+
+    @ManyToOne
+    @MapsId("userId")
+    @JoinColumn(name = "user_id", nullable = false)
+    public User user;
+
+    @ManyToOne
+    @MapsId("movieId")
+    @JoinColumn(name = "movie_id", nullable = false)
+    public Movie movie;
 
 //    @ManyToOne
 //    @MapsId("userId")

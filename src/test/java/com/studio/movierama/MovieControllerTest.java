@@ -3,7 +3,7 @@ package com.studio.movierama;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.studio.movierama.dto.MovieDto;
 import com.studio.movierama.dto.MovieRatingRequestDto;
-import com.studio.movierama.enums.LikeHateFlag;
+import com.studio.movierama.enums.Rating;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -41,7 +41,7 @@ public class MovieControllerTest {
                 .builder()
                 .movieId(1L)
                 .userId(2L)
-                .likeHateFlag(LikeHateFlag.LIKE)
+                .rating(Rating.LIKE)
                 .build();
         this.mockMvc.perform(post("/movies/ratings")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)

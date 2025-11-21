@@ -38,10 +38,9 @@ public class User {
     @Column
     private String password;
 
-    @OneToMany(
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    @JoinColumn(name = "id")
-    private List<UserMovie> movies = new ArrayList<>();
+    @OneToMany(mappedBy = "submitter")
+    private List<Movie> submittedMovies;
+
+    @OneToMany(mappedBy = "user")
+    private List<Opinion> opinions;
 }

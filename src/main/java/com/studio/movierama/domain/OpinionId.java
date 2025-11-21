@@ -13,7 +13,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class UserMovieId implements Serializable {
+public class OpinionId implements Serializable {
 
     private Long userId;
     private Long movieId;

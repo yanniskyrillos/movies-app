@@ -3,11 +3,11 @@ package com.studio.movierama
 import com.studio.movierama.config.security.MovieRamaUserDetails
 import com.studio.movierama.domain.Movie
 import com.studio.movierama.domain.User
-import com.studio.movierama.domain.UserMovie
-import com.studio.movierama.domain.UserMovieId
+import com.studio.movierama.domain.Opinion
+import com.studio.movierama.domain.OpinionId
 import com.studio.movierama.dto.MovieDto
 import com.studio.movierama.dto.MovieRatingRequestDto
-import com.studio.movierama.enums.LikeHateFlag
+import com.studio.movierama.enums.Rating
 import com.studio.movierama.repository.MovieRepository
 import com.studio.movierama.repository.UserMovieRepository
 import com.studio.movierama.service.MovieService
@@ -51,21 +51,21 @@ class MovieServiceSpec extends Specification {
         given: "a request to like a movie"
             MovieRatingRequestDto movieRatingRequestDto = MovieRatingRequestDto
                     .builder()
-                    .likeHateFlag(LikeHateFlag.LIKE)
+                    .rating(Rating.LIKE)
                     .userId(1L)
                     .movieId(1L)
                     .build()
-            UserMovieId userMovieId = new UserMovieId(1L, 1L)
-            UserMovie userMovie = UserMovie
+            OpinionId userMovieId = new OpinionId(1L, 1L)
+            Opinion userMovie = Opinion
                     .builder()
-                    .userMovieId(userMovieId)
-                    .likeHateFlag(LikeHateFlag.LIKE.dbValue)
+                    .opinionId(userMovieId)
+                    .likeHateFlag(Rating.LIKE.booleanValue)
                     .build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with LIKE flag will be saved to the database"
             1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
-            1 * userMovieRepository.findById(_) >> Optional.of(UserMovie.builder().userMovieId(userMovieId).build())
+            1 * userMovieRepository.findById(_) >> Optional.of(Opinion.builder().opinionId(userMovieId).build())
             1 * userMovieRepository.save(userMovie)
     }
 
@@ -73,21 +73,21 @@ class MovieServiceSpec extends Specification {
         given: "a request to hate a movie"
             MovieRatingRequestDto movieRatingRequestDto = MovieRatingRequestDto
                     .builder()
-                    .likeHateFlag(LikeHateFlag.HATE)
+                    .rating(Rating.DISLIKE)
                     .userId(1L)
                     .movieId(1L)
                     .build()
-            UserMovieId userMovieId = new UserMovieId(1L, 1L)
-            UserMovie userMovie = UserMovie
+            OpinionId userMovieId = new OpinionId(1L, 1L)
+            Opinion userMovie = Opinion
                     .builder()
-                    .userMovieId(userMovieId)
-                    .likeHateFlag(LikeHateFlag.HATE.dbValue)
+                    .opinionId(userMovieId)
+                    .likeHateFlag(Rating.DISLIKE.booleanValue)
                     .build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with HATE flag will be saved to the database"
             1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
-            1 * userMovieRepository.findById(_) >> Optional.of(UserMovie.builder().userMovieId(userMovieId).build())
+            1 * userMovieRepository.findById(_) >> Optional.of(Opinion.builder().opinionId(userMovieId).build())
             1 * userMovieRepository.save(userMovie)
     }
 
@@ -107,8 +107,8 @@ class MovieServiceSpec extends Specification {
                                 .id(1)
                                 .userId(2)
                                 .build()
-            UserMovieId userMovieId = new UserMovieId(2, 1)
-            UserMovie userMovie = new UserMovie(userMovieId, "L")
+            OpinionId userMovieId = new OpinionId(2, 1)
+            Opinion userMovie = new Opinion(userMovieId, "L")
             MovieDto movieDto = MovieDto.builder().userId(2).id(1).build()
         when: "the method is called"
             def response = movieService.findAll(pageable).content[0]

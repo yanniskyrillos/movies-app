@@ -1,6 +1,6 @@
 package com.studio.movierama.dto;
 
-import com.studio.movierama.enums.LikeHateFlag;
+import com.studio.movierama.enums.Rating;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +14,6 @@ public class MovieRatingRequestDto {
 
     private Long userId;
     private Long movieId;
-    private LikeHateFlag likeHateFlag;
+    private Rating rating;
     private boolean retract;
 }

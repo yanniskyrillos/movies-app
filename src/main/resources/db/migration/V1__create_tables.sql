@@ -12,12 +12,12 @@ create table if not exists movies (
     username varchar(300),
     publication_date timestamp,
     likes int,
-    hates int
+    dislikes int
 );
 
-create table if not exists users_movies (
+create table if not exists opinions (
     user_id bigint,
     movie_id bigint,
-    like_hate_flag varchar(4),
-    constraint users_movies_id unique (user_id, movie_id)
+    liked boolean,
+    constraint opinion_id unique (user_id, movie_id)
 );

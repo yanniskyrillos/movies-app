@@ -2,11 +2,11 @@ package com.studio.movierama.service;
 
 import com.studio.movierama.config.security.MovieRamaUserDetails;
 import com.studio.movierama.domain.Movie;
-import com.studio.movierama.domain.UserMovie;
-import com.studio.movierama.domain.UserMovieId;
+import com.studio.movierama.domain.Opinion;
+import com.studio.movierama.domain.OpinionId;
 import com.studio.movierama.dto.MovieDto;
 import com.studio.movierama.dto.MovieRatingRequestDto;
-import com.studio.movierama.enums.LikeHateFlag;
+import com.studio.movierama.enums.Rating;
 import com.studio.movierama.exception.MovieRamaException;
 import com.studio.movierama.repository.MovieRepository;
 import com.studio.movierama.repository.UserMovieRepository;
@@ -82,21 +82,21 @@ public class MovieService {
     }
 
     private List<MovieDto> setLoggedInUserRatings(Long loggedInUserId, List<MovieDto> movies) {
-        List<UserMovieId> userMovieIds = movies
+        List<OpinionId> opinionIds = movies
                 .stream()
-                .map(movieDto -> new UserMovieId(loggedInUserId, movieDto.getId()))
+                .map(movieDto -> new OpinionId(loggedInUserId, movieDto.getId()))
                 .toList();
-        List<UserMovie> userMovies = userMovieRepository.findAllById(userMovieIds);
+        List<Opinion> opinions = userMovieRepository.findAllById(opinionIds);
         return movies.stream()
                 .map(movieDto -> {
-                    UserMovie userMovie = userMovies.stream()
-                            .filter(userMovie1 -> userMovie1.getUserMovieId().getMovieId().equals(movieDto.getId()))
+                    Opinion opinion = opinions.stream()
+                            .filter(opinion1 -> opinion1.getOpinionId().getMovieId().equals(movieDto.getId()))
                             .findFirst()
                             .orElse(null);
-                    if (userMovie != null) {
-                        if (LikeHateFlag.LIKE.getDbValue().equals(userMovie.getLikeHateFlag())) {
+                    if (opinion != null) {
+                        if (Rating.LIKE.getBooleanValue() == opinion.isLiked()) {
                             movieDto.setLikedByUser(true);
-                        } else if (LikeHateFlag.HATE.getDbValue().equals(userMovie.getLikeHateFlag())) {
+                        } else if (Rating.DISLIKE.getBooleanValue() == opinion.isLiked()) {
                             movieDto.setHatedByUser(false);
                         }
                     }
@@ -110,46 +110,46 @@ public class MovieService {
             retractRating(movieRatingRequestDto.getMovieId(), movieRatingRequestDto.getUserId());
             return;
         }
-        switch (movieRatingRequestDto.getLikeHateFlag()) {
+        switch (movieRatingRequestDto.getRating()) {
             case LIKE:
                 like(movieRatingRequestDto.getMovieId(), movieRatingRequestDto.getUserId());
                 break;
-            case HATE:
-                hate(movieRatingRequestDto.getMovieId(), movieRatingRequestDto.getUserId());
+            case DISLIKE:
+                dislike(movieRatingRequestDto.getMovieId(), movieRatingRequestDto.getUserId());
                 break;
         }
     }
 
-    private void hate(Long movieId, Long userId) {
+    private void dislike(Long movieId, Long userId) {
         log.info("Mark movie with id: {} hated by user with id: {}", movieId, userId);
-        setLikeHateFlag(movieId, userId, LikeHateFlag.HATE);
+        rate(movieId, userId, Rating.DISLIKE);
     }
 
     private void like(Long movieId, Long userId) {
         log.info("Mark movie with id: {} liked by user with id: {}", movieId, userId);
-        setLikeHateFlag(movieId, userId, LikeHateFlag.LIKE);
+        rate(movieId, userId, Rating.LIKE);
     }
 
     private void retractRating(Long movieId, Long userId) {
         log.info("retracting rating of user: {} for movie: {}", userId, movieId);
-        userMovieRepository.deleteById(new UserMovieId(userId, movieId));
+        userMovieRepository.deleteById(new OpinionId(userId, movieId));
     }
 
-    private void setLikeHateFlag(Long movieId, Long userId, LikeHateFlag likeHateFlag) {
+    private void rate(Long movieId, Long userId, Rating likeHateFlag) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieRamaException("Movie not found"));
-        if (movie.getUserId().equals(userId)) {
+        if (movie.getSubmitter().getId().equals(userId)) {
             throw new MovieRamaException("User cannot like their own movie");
         }
-        UserMovie userMovie = userMovieRepository.findById(new UserMovieId(userId, movieId))
-                .orElse(UserMovie
+        Opinion opinion = userMovieRepository.findById(new OpinionId(userId, movieId))
+                .orElse(Opinion
                         .builder()
-                        .userMovieId(new UserMovieId(userId, movieId))
+                        .opinionId(new OpinionId(userId, movieId))
                         .build());
-        if (likeHateFlag.getDbValue().equals(userMovie.getLikeHateFlag())) {
+        if (likeHateFlag.getBooleanValue() == opinion.isLiked()) {
             return;
         }
-        userMovie.setLikeHateFlag(likeHateFlag.getDbValue());
-        userMovieRepository.save(userMovie);
+        opinion.setLiked(likeHateFlag.getBooleanValue());
+        userMovieRepository.save(opinion);
     }
 }
