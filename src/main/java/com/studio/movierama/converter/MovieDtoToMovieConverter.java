@@ -19,10 +19,10 @@ public class MovieDtoToMovieConverter implements Converter<MovieDto, Movie> {
                 .builder()
                 .title(source.getTitle())
                 .description(source.getDescription())
-                .submitter(userService.getReferenceById(source.getId()))
+                .submitter(userService.getReferenceById(source.getUserId()))
                 .publicationDate(source.getPublicationDate())
                 .likes(source.getLikes())
-                .hates(source.getHates())
+                .dislikes(source.getDislikes())
                 .build();
         return movie;
     }

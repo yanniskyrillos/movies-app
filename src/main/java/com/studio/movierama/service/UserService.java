@@ -1,12 +1,13 @@
 package com.studio.movierama.service;
 
+import com.studio.movierama.converter.UserDtoToUserConverter;
+import com.studio.movierama.converter.UserToUserDtoConverter;
 import com.studio.movierama.domain.User;
 import com.studio.movierama.dto.UserDto;
 import com.studio.movierama.exception.MovieRamaException;
 import com.studio.movierama.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -16,24 +17,28 @@ import java.util.Optional;
 public class UserService {
 
     private UserRepository userRepository;
-    private ConversionService conversionService;
+    private UserDtoToUserConverter userDtoToUserConverter;
+
+    private UserToUserDtoConverter userToUserDtoConverter;
 
     @Autowired
-    public UserService(UserRepository userRepository, ConversionService conversionService) {
+    public UserService(UserRepository userRepository, UserDtoToUserConverter userDtoToUserConverter,
+                       UserToUserDtoConverter userToUserDtoConverter) {
         this.userRepository = userRepository;
-        this.conversionService = conversionService;
+        this.userDtoToUserConverter = userDtoToUserConverter;
+        this.userToUserDtoConverter = userToUserDtoConverter;
     }
 
     public UserDto save(UserDto userDto) {
         log.info("Saving user");
-        User user = conversionService.convert(userDto, User.class);
+        User user = userDtoToUserConverter.convert(userDto);
         try {
             userRepository.save(user);
         } catch (Exception unique) {
             log.error(unique.getMessage());
             throw new MovieRamaException("User already exists");
         }
-        userDto = conversionService.convert(user, UserDto.class);
+        userDto = userToUserDtoConverter.convert(user);
         return userDto;
     }
 
@@ -41,7 +46,7 @@ public class UserService {
         log.info("find user by username");
         Optional<User> user = userRepository.findByUsername(username);
         UserDto userDto = user
-                .map(user1 -> conversionService.convert(user1, UserDto.class))
+                .map(user1 -> userToUserDtoConverter.convert(user1))
                 .orElse(null);
         return userDto;
     }
