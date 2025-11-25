@@ -45,4 +45,9 @@ public class UserService {
                 .orElse(null);
         return userDto;
     }
+
+    public User getReferenceById(Long id) {
+        User user = userRepository.getReferenceById(id);
+        return user;
+    }
 }
