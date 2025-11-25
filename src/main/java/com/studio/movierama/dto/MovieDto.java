@@ -21,8 +21,8 @@ public class MovieDto {
     private Long userId;
     private Instant publicationDate;
     private Integer likes;
-    private Integer hates;
+    private Integer dislikes;
     private String username;
     private boolean likedByUser;
-    private boolean hatedByUser;
+    private boolean dislikedByUser;
 }

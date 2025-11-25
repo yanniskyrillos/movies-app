@@ -45,7 +45,7 @@ public class Movie {
     private Integer likes;
 
     @Column
-    private Integer hates;
+    private Integer dislikes;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

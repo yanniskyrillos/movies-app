@@ -63,7 +63,7 @@ class MovieServiceSpec extends Specification {
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with LIKE flag will be saved to the database"
-            1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
+            1 * movieRepository.findById(_) >> Optional.of(Movie.builder().submitter(User.builder().id(2L).id(1L).build()))
             1 * ratingRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(ratingId).build())
             1 * ratingRepository.save(rating)
     }
@@ -117,7 +117,7 @@ class MovieServiceSpec extends Specification {
             1 * ratingRepository.findAllById(_) >> List.of(rating)
             with(response) {
                 likedByUser
-                (!hatedByUser)
+                (!dislikedByUser)
             }
     }
 }

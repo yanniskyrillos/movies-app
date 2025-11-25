@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -40,6 +39,11 @@ public class MovieService {
 
     public MovieDto save(MovieDto movieDto) {
         log.info("saving movie");
+        MovieRamaUserDetails loggedInUser = getLoggedInUserDetails();
+        System.out.println(movieDto.toString());
+        if (loggedInUser != null) {
+            movieDto.setUserId(loggedInUser.getId());
+        }
         Movie movie = conversionService.convert(movieDto, Movie.class);
         Instant now = Instant.now();
         movie.setPublicationDate(now);
@@ -57,16 +61,14 @@ public class MovieService {
             username = loggedInUser.getUsername();
             userId = loggedInUser.getId();
         }
-        Page<Movie> movies = movieRepository.findAll(pageable);//replace with a join query
-        List<MovieDto> movieDtoList = movies
-                .stream()
-                .map(movie -> conversionService.convert(movie, MovieDto.class))
-                .collect(Collectors.toList());
+        Page<MovieDto> movieDtoPageTemp = movieRepository.findAllMovieDetails(pageable);
         if (username != null) {
-            movieDtoList = setLoggedInUserRatings(userId, movieDtoList);
+            List<MovieDto> movieDtoList = setLoggedInUserRatings(userId, movieDtoPageTemp.getContent());
+            Page<MovieDto> movieDtoPage = new PageImpl<>(movieDtoList, pageable, movieDtoPageTemp.getTotalElements());
+            return movieDtoPage;
+        } else {
+            return movieDtoPageTemp;
         }
-        Page<MovieDto> movieDtoPage = new PageImpl<>(movieDtoList, pageable, movies.getTotalElements());
-        return movieDtoPage;
     }
 
     private MovieRamaUserDetails getLoggedInUserDetails() {
@@ -96,7 +98,7 @@ public class MovieService {
                         if (com.studio.movierama.enums.Rating.LIKE.getBooleanValue() == rating.isLiked()) {
                             movieDto.setLikedByUser(true);
                         } else if (com.studio.movierama.enums.Rating.DISLIKE.getBooleanValue() == rating.isLiked()) {
-                            movieDto.setHatedByUser(false);
+                            movieDto.setDislikedByUser(false);
                         }
                     }
                     return movieDto;
