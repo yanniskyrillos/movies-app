@@ -8,7 +8,7 @@ import com.studio.movierama.dto.MovieDto
 import com.studio.movierama.dto.MovieRatingRequestDto
 import com.studio.movierama.enums.Rating
 import com.studio.movierama.repository.MovieRepository
-import com.studio.movierama.repository.UserMovieRepository
+import com.studio.movierama.repository.RatingRepository
 import com.studio.movierama.service.MovieService
 import org.springframework.core.convert.ConversionService
 import org.springframework.data.domain.PageImpl
@@ -22,9 +22,9 @@ import spock.lang.Specification
 class MovieServiceSpec extends Specification {
 
     MovieRepository movieRepository = Mock(MovieRepository)
-    UserMovieRepository userMovieRepository = Mock(UserMovieRepository)
+    RatingRepository ratingRepository = Mock(RatingRepository)
     ConversionService conversionService = Mock(ConversionService)
-    MovieService movieService = new MovieService(movieRepository, conversionService, userMovieRepository)
+    MovieService movieService = new MovieService(movieRepository, conversionService, ratingRepository)
 
     def "save"() {
         given: "a request to save a movie"
@@ -42,8 +42,8 @@ class MovieServiceSpec extends Specification {
             MovieRatingRequestDto movieRatingRequestDto = MovieRatingRequestDto.builder().retract(true).build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
-        then: "delete method of userMovieRepository is called"
-            1 * userMovieRepository.deleteById(_)
+        then: "delete method of ratingRepository is called"
+            1 * ratingRepository.deleteById(_)
     }
 
     def "like a movie"() {
@@ -54,18 +54,18 @@ class MovieServiceSpec extends Specification {
                     .userId(1L)
                     .movieId(1L)
                     .build()
-            RatingId userMovieId = new RatingId(1L, 1L)
-            com.studio.movierama.domain.Rating userMovie = com.studio.movierama.domain.Rating
+            RatingId ratingId = new RatingId(1L, 1L)
+            com.studio.movierama.domain.Rating rating = com.studio.movierama.domain.Rating
                     .builder()
-                    .ratingId(userMovieId)
-                    .likeHateFlag(Rating.LIKE.booleanValue)
+                    .ratingId(ratingId)
+                    .liked(Rating.LIKE.booleanValue)
                     .build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with LIKE flag will be saved to the database"
             1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
-            1 * userMovieRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(userMovieId).build())
-            1 * userMovieRepository.save(userMovie)
+            1 * ratingRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(ratingId).build())
+            1 * ratingRepository.save(rating)
     }
 
     def "hate a movie"() {
@@ -76,18 +76,18 @@ class MovieServiceSpec extends Specification {
                     .userId(1L)
                     .movieId(1L)
                     .build()
-            RatingId userMovieId = new RatingId(1L, 1L)
-            com.studio.movierama.domain.Rating userMovie = com.studio.movierama.domain.Rating
+            RatingId ratingId = new RatingId(1L, 1L)
+            com.studio.movierama.domain.Rating rating = com.studio.movierama.domain.Rating
                     .builder()
-                    .ratingId(userMovieId)
-                    .likeHateFlag(Rating.DISLIKE.booleanValue)
+                    .ratingId(ratingId)
+                    .liked(Rating.DISLIKE.booleanValue)
                     .build()
         when: "the method is called"
             movieService.rate(movieRatingRequestDto)
         then: "an object with HATE flag will be saved to the database"
             1 * movieRepository.findById(_) >> Optional.of(Movie.builder().userId(2L).id(1L).build())
-            1 * userMovieRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(userMovieId).build())
-            1 * userMovieRepository.save(userMovie)
+            1 * ratingRepository.findById(_) >> Optional.of(com.studio.movierama.domain.Rating.builder().ratingId(ratingId).build())
+            1 * ratingRepository.save(rating)
     }
 
     def "find all movies with their ratings"() {
@@ -104,17 +104,17 @@ class MovieServiceSpec extends Specification {
             SecurityContextHolder.setContext(securityContext)
             Movie movie = Movie.builder()
                                 .id(1)
-                                .userId(2)
+                                .submitter(User.builder().id(2).build())
                                 .build()
-            RatingId userMovieId = new RatingId(2, 1)
-            com.studio.movierama.domain.Rating userMovie = new com.studio.movierama.domain.Rating(userMovieId, "L")
+            RatingId ratingId = new RatingId(2, 1)
+            com.studio.movierama.domain.Rating rating = com.studio.movierama.domain.Rating.builder().ratingId(ratingId).liked(true)
             MovieDto movieDto = MovieDto.builder().userId(2).id(1).build()
         when: "the method is called"
             def response = movieService.findAll(pageable).content[0]
         then: "the response contains the expected rating"
             1 * movieRepository.findAll(pageable) >> new PageImpl<Movie>([movie])
             1 * conversionService.convert(_, MovieDto.class) >> movieDto
-            1 * userMovieRepository.findAllById(_) >> List.of(userMovie)
+            1 * ratingRepository.findAllById(_) >> List.of(rating)
             with(response) {
                 likedByUser
                 (!hatedByUser)

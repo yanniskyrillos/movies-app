@@ -8,7 +8,7 @@ import com.studio.movierama.dto.MovieDto;
 import com.studio.movierama.dto.MovieRatingRequestDto;
 import com.studio.movierama.exception.MovieRamaException;
 import com.studio.movierama.repository.MovieRepository;
-import com.studio.movierama.repository.UserMovieRepository;
+import com.studio.movierama.repository.RatingRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
@@ -27,15 +27,15 @@ import java.util.stream.Collectors;
 public class MovieService {
 
     private MovieRepository movieRepository;
-    private UserMovieRepository userMovieRepository;
+    private RatingRepository ratingRepository;
     private ConversionService conversionService;
 
     @Autowired
     public MovieService(MovieRepository movieRepository, ConversionService conversionService,
-                        UserMovieRepository userMovieRepository) {
+                        RatingRepository ratingRepository) {
         this.movieRepository = movieRepository;
         this.conversionService = conversionService;
-        this.userMovieRepository = userMovieRepository;
+        this.ratingRepository = ratingRepository;
     }
 
     public MovieDto save(MovieDto movieDto) {
@@ -57,7 +57,7 @@ public class MovieService {
             username = loggedInUser.getUsername();
             userId = loggedInUser.getId();
         }
-        Page<Movie> movies = movieRepository.findAll(pageable);
+        Page<Movie> movies = movieRepository.findAll(pageable);//replace with a join query
         List<MovieDto> movieDtoList = movies
                 .stream()
                 .map(movie -> conversionService.convert(movie, MovieDto.class))
@@ -85,7 +85,7 @@ public class MovieService {
                 .stream()
                 .map(movieDto -> new RatingId(loggedInUserId, movieDto.getId()))
                 .toList();
-        List<Rating> ratings = userMovieRepository.findAllById(ratingIds);
+        List<Rating> ratings = ratingRepository.findAllById(ratingIds);
         return movies.stream()
                 .map(movieDto -> {
                     Rating rating = ratings.stream()
@@ -131,7 +131,7 @@ public class MovieService {
 
     private void retractRating(Long movieId, Long userId) {
         log.info("retracting rating of user: {} for movie: {}", userId, movieId);
-        userMovieRepository.deleteById(new RatingId(userId, movieId));
+        ratingRepository.deleteById(new RatingId(userId, movieId));
     }
 
     private void rate(Long movieId, Long userId, com.studio.movierama.enums.Rating likeHateFlag) {
@@ -140,7 +140,7 @@ public class MovieService {
         if (movie.getSubmitter().getId().equals(userId)) {
             throw new MovieRamaException("User cannot like their own movie");
         }
-        Rating rating = userMovieRepository.findById(new RatingId(userId, movieId))
+        Rating rating = ratingRepository.findById(new RatingId(userId, movieId))
                 .orElse(Rating
                         .builder()
                         .ratingId(new RatingId(userId, movieId))
@@ -149,6 +149,6 @@ public class MovieService {
             return;
         }
         rating.setLiked(likeHateFlag.getBooleanValue());
-        userMovieRepository.save(rating);
+        ratingRepository.save(rating);
     }
 }
